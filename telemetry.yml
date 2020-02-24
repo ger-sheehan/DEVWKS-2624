@@ -1,0 +1,31 @@
+---
+
+- name: Configure N9Kv DEVWKS-2624
+  hosts: lab
+  connection: network_cli 
+  gather_facts: no
+
+  tasks:
+  - name: ENABLE NECESSARY FEATURES
+    nxos_feature:
+      feature: telemetry
+      state: enabled
+
+  - name: Merge Telemetry Configuration
+    nxos_telemetry:
+      state: merged
+      config:
+        vrf: default
+        destination_groups:
+          - { id: 1, destination: {ip: 30.30.30.11, port: 50001, protocol: gRPC, encoding: GPB}}
+        sensor_groups:
+          - { id: 1, data_source: NX-API, path: {name: '"show system resources"', depth: 0}}
+          - { id: 1, data_source: NX-API, path: {name: '"show ip ospf neighbors"', depth: 0}}
+          - { id: 1, data_source: NX-API, path: {name: '"show vlan summary"', depth: 0}}          
+          - { id: 1, data_source: NX-API, path: {name: '"show lldp neighbors"', depth: 0}}        
+          - { id: 2, data_source: DME, path: {name: sys/procsys, depth: 1}}               
+        subscriptions:
+          - { id: 1, destination_group: 1, sensor_group: {id: 1, sample_interval: 60000}}
+          - { id: 1, destination_group: 1, sensor_group: {id: 2, sample_interval: 30000}}
+
+
