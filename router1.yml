@@ -1,6 +1,6 @@
 ---
 - name: Prepare Bird1
-  hosts: bird1
+  hosts: router1
   user: vagrant
   become: yes
   gather_facts: no
