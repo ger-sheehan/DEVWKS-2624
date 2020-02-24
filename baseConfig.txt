@@ -1,0 +1,50 @@
+feature nxapi
+feature bash-shell
+feature ospf
+feature bgp
+feature lldp
+feature interface-vlan
+
+
+interface Ethernet1/1
+  no switchport
+  ip address 10.10.10.12/24
+  ip router ospf 1 area 0.0.0.0
+  no shutdown
+
+interface Ethernet1/2
+  no switchport
+  ip address 20.20.20.12/24
+  ip router ospf 1 area 0.0.0.0
+  no shutdown
+
+interface Ethernet1/3
+  no switchport
+  ip address 30.30.30.12/24
+  ip router ospf 1 area 0.0.0.0
+  no shutdown
+
+hostname Nexus9000v
+
+
+interface loopback0
+  ip address 3.3.3.3/32
+  ip router ospf 1 area 0.0.0.0
+
+
+router ospf 1
+router bgp 65003
+  router-id 3.3.3.3
+  address-family ipv4 unicast
+    network 10.10.10.0/24
+    network 20.20.20.0/24
+  neighbor 2.2.2.2
+    remote-as 65002
+    update-source loopback0
+    ebgp-multihop 2
+    address-family ipv4 unicast
+  neighbor 10.10.10.11
+    remote-as 65001
+    address-family ipv4 unicast
+
+

@@ -1,0 +1,88 @@
+---
+- name: Prepare Tick
+  hosts: tick
+  user: vagrant
+  become: yes
+  gather_facts: no
+
+  tasks:
+
+  - name: Install BIRD PPA
+    apt_repository: repo=ppa:cz.nic-labs/bird
+
+  - name: Install Bird
+    apt: name=bird state=present update_cache=yes
+
+  - name: Bird Configuration
+    template: src={{inventory_hostname}}.conf dest=/etc/bird/bird.conf
+
+  - name: Install LLDP
+    apt: name=lldpd state=present update_cache=yes
+
+  - name: Set PATH for crontab
+    cron:
+        name: PATH
+        env: yes
+        value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+  - name: Set SHELL for crontab
+    cron:
+        name: SHELL
+        env: yes
+        value: /bin/bash
+
+  - name: Copy flappy_bird
+    template: 
+      src: flappy_bird.sh 
+      dest: /home/vagrant/flappy_bird.sh
+      mode: '0777'
+
+  - name: Configure Flappy Bird
+    cron:
+        name: "Flappy Bird"
+        job: "/home/vagrant/flappy_bird.sh"
+
+  - name: Install CA
+    apt: name=ca-certificates state=present
+
+  #- name: Import InfluxDB GPG signing key
+  #  command: wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+
+  - name: Add Influx gpg key
+    apt_key:
+      url: https://repos.influxdata.com/influxdb.key
+      state: present
+
+  - name: Add InfluxDB repository
+    apt_repository: 
+      repo: 'deb https://repos.influxdata.com/ubuntu trusty stable' 
+      state: present
+
+  - name: Install Telegraf packages
+    apt: name=telegraf state=present
+
+  - name: Copy telegraf.conf
+    template: 
+      src: telegraf.conf
+      dest: /home/vagrant/telegraf/
+
+  - name: Install InfluxDB packages
+    apt: name=influxdb state=present
+
+  - name: Install Chronograf packages
+    apt: name=chronograf state=present
+
+  - name: Start Necessary Services
+    service: name={{ item }} state=started
+    with_items:
+      - bird
+      - lldpd
+      - cron
+      - influxdb
+      - chronograf
+
+  #- name: Stop cron
+  #  service: name={{ item }} state=stopped
+  #  with_items:
+  #    - cron
+

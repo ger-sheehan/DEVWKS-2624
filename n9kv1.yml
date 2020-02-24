@@ -1,0 +1,16 @@
+---
+- name: Prepare N9Kv1
+  hosts: n9kv1
+  user: vagrant
+  #sudo: yes
+  become: false
+  gather_facts: false 
+
+  tasks:
+  - name: N9Kv1 Configuration
+    nxos_system:
+      hostname: N9Kv1
+
+  - name: Apply Base Configuration
+    nxos_config:
+      src: baseConfig.txt
